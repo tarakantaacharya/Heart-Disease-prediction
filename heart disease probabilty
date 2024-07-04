@@ -1,0 +1,72 @@
+import pandas as pd
+import numpy as np
+df=pd.read_csv('heart.csv')
+print(df.head())
+
+x=df.iloc[:,:-1]
+y=df.iloc[:,-1]
+from sklearn.model_selection import train_test_split
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.2,random_state=0)
+from sklearn.neighbors import KNeighborsClassifier  
+classifier= KNeighborsClassifier(n_neighbors=5, metric='manhattan')
+classifier.fit(x_train,y_train)
+y_pred=classifier.predict(x_test)
+y_pred1=classifier.predict(x_train)
+from sklearn.metrics import accuracy_score
+acc=accuracy_score(y_test,y_pred)
+print('Test Accuracy:',acc*100)
+acc1=accuracy_score(y_train,y_pred1)
+print('Train accuracy:',acc1*100)
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Flatten, Dense
+from tensorflow.keras.optimizers import Adam
+from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.metrics import Precision, Recall
+from tensorflow.keras.callbacks import EarlyStopping
+model = tf.keras.Sequential([
+  tf.keras.layers.Dense(10, activation='relu', input_shape=(13,)),
+  tf.keras.layers.Dense(3, activation='softmax')])
+early_stopping = EarlyStopping(monitor='val_loss', patience=5)
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+history=model.fit(x_train, y_train, epochs=390, batch_size=32,validation_split=0.2,callbacks=[early_stopping])
+training_accuracy = history.history['accuracy']
+validation_accuracy = history.history['val_accuracy']
+print('Training accuracy:',training_accuracy[-1]*100)
+print('Validation accuracy:',validation_accuracy[-1]*100)
+
+train_loss = history.history['loss']
+val_loss = history.history['val_loss']
+test_loss, test_acc = model.evaluate(x_test,y_test)
+print('New test accuracy:', test_acc*100)
+
+
+df4={'age':58,
+     'sex':0,
+     'cp':0,
+     'trestbps':100,
+     'chol':248,
+     'fbs':0,
+     'restecg':0,
+     'thalach':122,
+     'exang':0,
+     'oldpeak':1,
+     'slope':1,
+     'ca':0,
+     'thal':2
+     }
+df4=pd.DataFrame(df4,index=[0])
+prediction=classifier.predict(df4)
+print(prediction)
+if(prediction[0]==0):
+  print("No Chance of Heart Disease")
+else:
+  print("Chance of Heart Disease")
+
+p=classifier.predict_proba(df4)
+for i in range(2):  
+  if(p[0][i]>0.5):
+    print("Probability percentage of Heart Disease:",p[0][i]*100)
+  else:
+    print("Probabilty percentage of No Heart Disease:",p[0][i]*100)
